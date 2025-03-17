@@ -18,9 +18,15 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nom',
+        'prenom',
+        'sexe',
+        'adresse',
+        'telephone',
+        'image',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -33,6 +39,16 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
+    public function commande()
+    {
+        return $this->hasMany(Commande::class);
+    }
+    
     /**
      * Get the attributes that should be cast.
      *
