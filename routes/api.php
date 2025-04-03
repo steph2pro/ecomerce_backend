@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+// use App\Http\Controllers\UserController;
+
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommandeController;
@@ -12,7 +15,10 @@ use App\Http\Controllers\CommandeController;
 Route::apiResource('users', UserController::class);
 Route::get('users/{id}/articles', [UserController::class, 'getArticles']);
 Route::get('users/{id}/commandes', [UserController::class, 'getCommandes']);
+// Route::post('users', [UserController::class, 'store']);
+Route::put('users/{id}', [UserController::class, 'update']);
 
+Route::post('/users', [UserController::class, 'store']);
 
 //categories
 Route::apiResource('categories', CategoryController::class);
@@ -34,3 +40,7 @@ Route::get('commandes/{id}', [CommandeController::class, 'show']);
 Route::post('commandes', [CommandeController::class, 'store']);
 Route::put('commandes/{id}', [CommandeController::class, 'update']);
 Route::delete('commandes/{id}', [CommandeController::class, 'destroy']);
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+Route::get('/user', [AuthController::class, 'user'])->middleware('auth');

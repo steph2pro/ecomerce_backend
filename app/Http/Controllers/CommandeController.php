@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Commande;
 use App\Models\CommandeArticle;
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +28,7 @@ class CommandeController extends Controller
             'articles.*.prix' => 'required|numeric|min:0',
         ]);
 
-        DB::beginTransaction(); // Démarre une transaction
+        DB::beginTransaction();
 
         try {
             // Calculer le montant total
@@ -52,7 +54,7 @@ class CommandeController extends Controller
                 ]);
             }
 
-            DB::commit(); // Valider la transaction
+            DB::commit();
 
             return response()->json([
                 'message' => 'Commande créée avec succès',
@@ -60,7 +62,7 @@ class CommandeController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Annuler en cas d'erreur
+            DB::rollBack();
             return response()->json(['message' => 'Erreur lors de la création de la commande', 'error' => $e->getMessage()], 500);
         }
     }
@@ -117,5 +119,70 @@ class CommandeController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Erreur lors de la suppression', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // Mettre à jour un article dans une commande
+    public function updateArticle(Request $request, $commandeId, $articleId)
+    {
+        $commande = Commande::find($commandeId);
+        if (!$commande) {
+            return response()->json(['message' => 'Commande non trouvée'], 404);
+        }
+
+        $article = Article::find($articleId);
+        if (!$article) {
+            return response()->json(['message' => 'Article non trouvé'], 404);
+        }
+
+        // Validation des données
+        $request->validate([
+            'quantite' => 'required|integer|min:1',
+            'prix' => 'required|numeric|min:0',
+        ]);
+
+        // Trouver la ligne de commande correspondant à l'article
+        $commandeArticle = CommandeArticle::where('commande_id', $commandeId)
+            ->where('article_id', $articleId)
+            ->first();
+
+        if (!$commandeArticle) {
+            return response()->json(['message' => 'Article non présent dans la commande'], 404);
+        }
+
+        // Mettre à jour la quantité et le prix de l'article
+        $commandeArticle->update([
+            'quantite' => $request->quantite,
+            'prix' => $request->prix,
+        ]);
+
+        // Recalculer le montant total de la commande
+        $montantTotal = $commande->commandeArticles->sum(function ($article) {
+            return $article->quantite * $article->prix;
+        });
+
+        // Mettre à jour le montant total de la commande
+        $commande->update(['montantTotal' => $montantTotal]);
+
+        return response()->json([
+            'message' => 'Article mis à jour avec succès',
+            'commande' => $commande->load('commandeArticles.article')
+        ]);
+    }
+
+    // Calculer le montant total d'une commande
+    public function montantTotal($id)
+    {
+        $commande = Commande::with('commandeArticles')->find($id);
+        if (!$commande) {
+            return response()->json(['message' => 'Commande non trouvée'], 404);
+        }
+
+        $montantTotal = $commande->commandeArticles->sum(function ($commandeArticle) {
+            return $commandeArticle->quantite * $commandeArticle->prix;
+        });
+
+        return response()->json([
+            'montantTotal' => $montantTotal
+        ]);
     }
 }

@@ -11,14 +11,15 @@ class Article extends Model
 
     // Définir les colonnes qui peuvent être assignées en masse
     protected $fillable = [
-        'intitule',                  
-        'description',              
-        'quantite',                  
-        'prix_unitaire_achat',       
-        'prix_unitaire_de_vente',    
-        'type_operation',            
-        'categorie_id',              
-        'user_id',              
+        'intitule',
+        'description',
+        'quantite',
+        'prix_unitaire_achat',
+        'prix_unitaire_de_vente',
+        'type_operation',
+        'categorie_id',
+        'user_id',
+        'images',
     ];
 
     // Si tu veux protéger certaines colonnes (par exemple 'id')
@@ -36,7 +37,7 @@ class Article extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+
     /**
      * Définir la relation avec la table 'commande_articles' (hasMany).
      * Un article peut être présent dans plusieurs lignes de commandes via 'commande_articles'.
